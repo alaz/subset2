@@ -12,18 +12,11 @@ scalaVersion := "2.10.0"
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
-crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0")
-
 organizationName := "Osinka"
 
 description := """MongoDB Document parser combinators and builders"""
 
-scalacOptions <<= scalaVersion map {
-  case ScalaVersionRE(major, minor) if major.toInt > 2 || (major == "2" && minor.toInt >= 10) =>
-    List("-deprecation", "-unchecked", "-feature")
-  case _ =>
-    List("-deprecation", "-unchecked")
-}
+scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.10.1",
