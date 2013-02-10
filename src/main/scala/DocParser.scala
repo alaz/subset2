@@ -31,6 +31,17 @@ trait DocParser[+A] extends (Document => ParseResult[A]) { parent =>
   def ? : DocParser[Option[A]] = DocParser(doc => Right(parent(doc).right.toOption))
 
   def >>[B](f: A => DocParser[B]): DocParser[B] = flatMap(f)
+
+  /* parsers in pattern matching, when errors are not relevant
+   *
+   * ```
+   * val parser: DocParser[Int] = ...
+   * collection.find().asScala collect {
+   *   case parser(i) => i
+   * }
+   * ```
+   */
+  def unapply(doc: Document): Option[A] = apply(doc).right.toOption
 }
 
 object DocParser {

@@ -49,6 +49,12 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
           fails("wrong event %s" format eventId)
       }
 
+      // the snippet above could be expressed more idiomatic as
+      // contains("event", "ourtype") ~> (
+      //   contains("version", 1) ~> int("key") |
+      //   contains("version", 2) ~> long("l)
+      // )
+
       parser(dbo.get) should be('left)
       parser(dbo("version", 1).add("key", 10).get) should be('left)
       parser(dbo("event", "not_our").add("version", 1).add("key", 10).get) should be('left)

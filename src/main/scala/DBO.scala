@@ -31,9 +31,18 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
 
   /* walks through the DBObject and replaces all the value Symbols by corresponding bindings.
    * The intended use is like this
+   *
    * ```
    * DBO("a" -> 'a).on('a -> "value")
    * ```
+   *
+   * Nested subdocuments will be searched for replacement as well:
+   *
+   * ```
+   * DBO("a" -> DBO("b" -> 'val)).on('val -> 123)
+   * ```
+   *
+   * Binding values are not looked up for replacement
    */
   def on(bindings: DBO.KV*): DBObject = {
     val m = Map(bindings map { binding => binding.key -> binding.value } :_*)
