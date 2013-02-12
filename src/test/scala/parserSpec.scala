@@ -28,7 +28,8 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
   }
   describe("Combinator") {
     it("converts to optional") {
-      val parser = int("a").?
+      val parser: DocParser[Option[Int]] = int("a").opt
+
       parser.apply(dbo("a", 10).get) should equal(Right(Some(10)))
       parser.apply(dbo.get) should equal(Right(None))
     }

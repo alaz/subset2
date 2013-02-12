@@ -28,7 +28,7 @@ trait DocParser[+A] extends (Document => ParseResult[A]) { parent =>
 
   def |[B >: A](p: DocParser[B]): DocParser[B] = DocParser(doc => parent(doc) fold (_ => p(doc), a => Right(a)))
 
-  def ? : DocParser[Option[A]] = DocParser(doc => Right(parent(doc).right.toOption))
+  def opt : DocParser[Option[A]] = DocParser(doc => Right(parent(doc).right.toOption))
 
   def >>[B](f: A => DocParser[B]): DocParser[B] = flatMap(f)
 
