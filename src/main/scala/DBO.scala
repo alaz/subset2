@@ -18,6 +18,9 @@ object DBO {
   case class KV(key: String, value: Option[Any])
 }
 
+/**
+ * Mutable buffer. Produces [[com.mongodb.DBObject]]
+ */
 class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
   def append[A](k: String, value: A)(implicit writer: BsonWritable[A]): this.type = {
     writer(value) match {
