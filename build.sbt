@@ -20,7 +20,7 @@ scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.10.1",
-  "org.scalatest" % "scalatest" % "1.8" % "test" cross CrossVersion.full
+  "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
 )
 
 credentials <+= (version) map { version: String =>
