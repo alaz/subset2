@@ -23,15 +23,22 @@ libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest" % "1.8" % "test" cross CrossVersion.full
 )
 
-credentials += Credentials(Path.userHome / ".ivy2" / "credentials_sonatype")
+credentials <+= (version) map { version: String =>
+  val file =
+    if (version.trim endsWith "SNAPSHOT") "credentials_osinka"
+    else "credentials_sonatype"
+  Credentials(Path.userHome / ".ivy2" / file)
+}
 
 pomIncludeRepository := { x => false }
 
 publishTo <<= (version) { version: String =>
-  if (version.trim endsWith "SNAPSHOT")
-    Some(Resolver.file("file", file(Path.userHome.absolutePath+"/.m2/repository")))
-  else
-    Some("Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+  Some(
+    if (version.trim endsWith "SNAPSHOT")
+      "Osinka Internal Repo" at "http://repo.osinka.int/content/repositories/snapshots/"
+    else
+      "Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+  )
 }
 
 seq(lsSettings: _*)
