@@ -1,6 +1,6 @@
 # Getting Started
 
-**Subset** provides simple and extensible APIs for building `DBObject` structures to pass
+**Subset** 2.x provides simple and extensible APIs for building `DBObject` structures to pass
 them into MongoDB driver queries and to parse the resulting documents and to transform them.
 
 
