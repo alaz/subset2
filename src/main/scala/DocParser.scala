@@ -42,6 +42,17 @@ trait DocParser[+A] extends (Document => ParseResult[A]) { parent =>
    * ```
    */
   def unapply(doc: Document): Option[A] = apply(doc).right.toOption
+
+  /**
+   * optimistic parsing, e.g. we assuming we can parse everything we get. Otherwise
+   * we'll get exception
+   *
+   * ```
+   * collection.find().asScala map {parser.parse}
+   * ```
+   */
+  def parse: Document => A =
+    this(_) fold (msg => throw new Exception(msg), x => x)
 }
 
 object DocParser {
