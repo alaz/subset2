@@ -148,13 +148,14 @@ val userName: DocParser[String] = get[String]("user" :: "name" :: Nil)
 
 As a matter of personal preference I would write it as `get[String]("user.name" split "\\.")`
 
-### `get[Option[T]](fieldName)` vs. `get[T](fieldName).opt`
+#### `get[Option[T]](fieldName)` vs. `get[T](fieldName).opt`
 
-When you say `get[Option[T]](fieldName)` you declare there must be a field named `fieldName`, but you are
-not sure it can be decoded, that's why you retrieve `Option[T]`
+When you create a parser `get[Option[T]](fieldName)` you declare there must be a field named `fieldName`, but you are
+not sure if it can be decoded. Which means, such parser will fail if there is not field. It will return `Some[T]`
+if it could decode the value and `None` otherwise.
 
-But when you declare `get[T](fieldName).get` you declare the field is optional, but in case it exists, it
-should be `T`.
+But when you create `get[T](fieldName).get` you declare the field is optional. The parser will return `None` if no
+field with this name exists and `Some[T]` if the field exists. Certainly it will fail if it cannot decode the field.
 
 ### Own fields
 
