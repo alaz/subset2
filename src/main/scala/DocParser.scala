@@ -69,7 +69,7 @@ object DocParser {
 
   def get[T](name: String)(implicit f: Field[T]): DocParser[T] =
     DocParser[T] { doc =>
-      Option(doc.get(name)) flatMap (f.apply(_)) toRight ("No field "+name)
+      Option(doc.get(name)) flatMap (f.apply(_)) toRight ("No field `"+name+"`")
     }
 
   def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
@@ -88,7 +88,7 @@ object DocParser {
   def oid(name: String)(implicit f: Field[ObjectId]): DocParser[ObjectId] = get[ObjectId](name)
 
   def contains[T : Field](name: String, t: T): DocParser[Unit] =
-    get[T](name).collect("No field " + name + " with value " + t) { case a if a == t => Unit }
+    get[T](name).collect("No field `"+name+"` with value `"+t+"`") { case a if a == t => Unit }
 
   def fails(msg: String) = DocParser[Unit](_ => Left(msg))
 
