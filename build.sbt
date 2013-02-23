@@ -41,6 +41,8 @@ publishTo <<= (version) { version: String =>
   )
 }
 
+useGpg := true
+
 seq(lsSettings: _*)
 
 (LsKeys.tags in LsKeys.lsync) := Seq("mongo", "mongodb", "bson", "persistence", "document")
