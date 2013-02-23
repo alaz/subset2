@@ -43,9 +43,9 @@ publishTo <<= (version) { version: String =>
 
 seq(lsSettings: _*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("mongo", "mongodb")
+(LsKeys.tags in LsKeys.lsync) := Seq("mongo", "mongodb", "bson", "persistence", "document")
 
-//(LsKeys.docsUrl in LsKeys.lsync) := Some(url("http://osinka.github.com/subset2/Subset.html"))
+(LsKeys.docsUrl in LsKeys.lsync) := Some(url("https://github.com/osinka/subset2"))
 
 pomExtra := <xml:group>
     <developers>
