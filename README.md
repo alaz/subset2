@@ -14,6 +14,8 @@ documents assuming we have different field types.
 This is where a mutable `DBObjectBuffer` object comes in handy
 
 ```scala
+import com.osinka.subset._
+
 val buffer = DBO("email" -> "user@domain.tld", "name" -> "John Doe")
 buffer.append("age" -> 30)
 ```
@@ -174,7 +176,7 @@ optional. The parser will return `None` if no field with this name
 exists and `Some[T]` if the field exists. Certainly it will fail if it
 cannot decode the field.
 
-### Own fields
+### Smarter deserialization
 
 Any primitive `get` parser relies on type class `Field[A]` that can
 retrieve values of type `A` from `Any` (the field value from
@@ -185,6 +187,8 @@ cannot decode `ObjectId` from a `String`. However, if you do `import
 SmartFields._` before your parsers, they will do their best to decode
 *compatible* types. E.g. they will accept `Int` value when asked to
 parse `Long`, etc.
+
+### Own fields
 
 You are free to define own `Field[A]` implicits:
 
