@@ -47,7 +47,7 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
           (contains("version", 1) ~> int("key") map { (_: Int).toLong }) |
            contains("version", 2) ~> long("l")
         case eventId =>
-          fails("wrong event %s" format eventId)
+          fails(s"wrong event $eventId")
       }
 
       // the snippet above could be expressed more idiomatic as
@@ -68,7 +68,7 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
         case "ourtype" =>
           contains("version", 1) ~> int("key") | contains("version", 2) ~> long("l")
         case eventId =>
-          fails("wrong event %s" format eventId)
+          fails(s"wrong event $eventId")
       }
 
       parser(dbo("event", new BsonSym("ourtype")).add("version", 1).add("key", 10L).get) should be('right)
