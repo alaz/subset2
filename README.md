@@ -171,7 +171,7 @@ decoded. Which means, such parser will fail if there is not field. It
 will return `Some[T]` if it could decode the value and `None`
 otherwise.
 
-But when you create `get[T](fieldName).get` you declare the field is
+But when you create `get[T](fieldName).opt` you declare the field is
 optional. The parser will return `None` if no field with this name
 exists and `Some[T]` if the field exists. Certainly it will fail if it
 cannot decode the field.
