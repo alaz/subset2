@@ -45,7 +45,7 @@ class dboSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routin
       DBO("a" -> 'a).on('a -> (None:Option[Int])) should be('empty)
     }
     it("walks into subdocuments") {
-      val dbo = DBO("a" -> DBO("b" -> 'key)).on('key -> 13)
+      val dbo = DBO("a" -> DBO("b" -> 'key)) ('key -> 13)
       dbo should containField("a")
       dbo.get("a").asInstanceOf[DBObject] should containKeyValue("b" -> 13)
     }

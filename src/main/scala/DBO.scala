@@ -68,10 +68,14 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
       dbo
     }
 
-    walkDBObject(this.apply())
+    val dbo = builder.get()
+    if (bindings.isEmpty)
+      dbo
+    else
+      walkDBObject(dbo)
   }
 
-  def apply(): DBObject = builder.get
+  def apply(bindings: DBO.KV*): DBObject = on(bindings:_*)
 }
 
 object DBObjectBuffer {
