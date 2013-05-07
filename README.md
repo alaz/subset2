@@ -62,21 +62,21 @@ lets you replace any symbol value later:
 
 ```scala
 val preparedStmt = DBO("user.age" -> DBO("$gt" -> 'age))
-collection.find(preparedStmt.on('age -> 12))
+collection.find(preparedStmt('age -> 12))
 ```
 
 Actually you may drop some values as well by supplying `None`:
 
 ```scala
 val preparedStmt = DBO("post.version" -> 'version, "modt" -> DBO("$gt" -> 'datetime))
-preparedStmt.on('version -> (None:Option[Int]), 'datetime -> new java.util.Date)
+preparedStmt('version -> (None:Option[Int]), 'datetime -> new java.util.Date)
 ```
 
 Expectedly, `Some` will just work as plain value too:
 
 ```scala
 val preparedStmt = DBO("user.age" -> DBO("$gt" -> 'age))
-collection.find(preparedStmt.on('age -> Some(12)))
+collection.find(preparedStmt('age -> Some(12)))
 ```
 
 ## Parser API

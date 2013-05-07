@@ -36,18 +36,18 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
    * The intended use is like this
    *
    * ```
-   * DBO("a" -> 'a).on('a -> "value")
+   * DBO("a" -> 'a) ('a -> "value")
    * ```
    *
    * Nested subdocuments will be searched for replacement as well:
    *
    * ```
-   * DBO("a" -> DBO("b" -> 'val)).on('val -> 123)
+   * DBO("a" -> DBO("b" -> 'val)) ('val -> 123)
    * ```
    *
    * Binding values are not looked up for replacement
    */
-  def on(bindings: DBO.KV*): DBObject = {
+  def apply(bindings: DBO.KV*): DBObject = {
     val m = Map(bindings map { binding => binding.key -> binding.value } :_*)
 
     def walkDBObject(dbo: DBObject): DBObject = {
@@ -75,7 +75,9 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
       walkDBObject(dbo)
   }
 
-  def apply(bindings: DBO.KV*): DBObject = on(bindings:_*)
+  /** For those who got used to Anorm
+    */
+  def on(bindings: DBO.KV*): DBObject = apply(bindings:_*)
 }
 
 object DBObjectBuffer {
