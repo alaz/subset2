@@ -28,6 +28,11 @@ class dboSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routin
     it("overrides on Some") {
       DBO("a" -> 12).append("a" -> Some("str")).apply() should containKeyValue("a" -> "str")
     }
+    it("is immutable") {
+      val b = DBO("a" -> 'f)
+      b('f -> 12) should containKeyValue("a" -> 12)
+      b('f -> 13) should containKeyValue("a" -> 13)
+    }
   }
   describe("binding") {
     it("binds keys") {

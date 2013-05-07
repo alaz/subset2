@@ -1,7 +1,7 @@
 package com.osinka.subset
 
 import org.bson.types.{Symbol => BsonSymbol}
-import com.mongodb.{BasicDBObjectBuilder,DBObject}
+import com.mongodb.{BasicDBObjectBuilder,BasicDBObject,DBObject}
 
 object DBO {
   def empty: DBObjectBuffer =
@@ -14,6 +14,9 @@ object DBO {
       buffer.add(key, value)
     new DBObjectBuffer(buffer)
   }
+
+  private[subset] def deepCopy(dbo: DBObject) =
+    dbo.asInstanceOf[BasicDBObject].copy.asInstanceOf[DBObject]
 
   case class KV(key: String, value: Option[Any])
 }
@@ -68,7 +71,7 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
       dbo
     }
 
-    val dbo = builder.get()
+    val dbo = DBO deepCopy builder.get()
     if (bindings.isEmpty)
       dbo
     else
