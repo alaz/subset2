@@ -15,9 +15,6 @@ object DBO {
     new DBObjectBuffer(buffer)
   }
 
-  private[subset] def deepCopy(dbo: DBObject) =
-    dbo.asInstanceOf[BasicDBObject].copy.asInstanceOf[DBObject]
-
   case class KV(key: String, value: Option[Any])
 }
 
@@ -71,7 +68,7 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
       dbo
     }
 
-    val dbo = DBO deepCopy builder.get()
+    val dbo = buildSideEffectFreeObject
     if (bindings.isEmpty)
       dbo
     else
@@ -81,6 +78,20 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
   /** For those who got used to Anorm
     */
   def on(bindings: DBO.KV*): DBObject = apply(bindings:_*)
+
+  /*
+   * In fact, BasicDBObjectBuilder is mutable through the DBObject it creates.
+   *
+   * When you call `get` on BasicDBObjectBuilder and then modify the resulting
+   * DBObject, the structures inside the builder mutate as well. So the next object
+   * created will be not what your builder looks like. I know, this is weird.
+   *
+   * The helper method below creates a "deep copy" of DBObject so that you
+   * could modify the builder freely.
+   */
+  private def buildSideEffectFreeObject =
+    builder.get.asInstanceOf[BasicDBObject].copy.asInstanceOf[DBObject]
+
 }
 
 object DBObjectBuffer {
