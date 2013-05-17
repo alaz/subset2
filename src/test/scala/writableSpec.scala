@@ -46,4 +46,10 @@ class writableSpec extends FunSpec with ShouldMatchers with MongoMatchers with R
       unpack[Tuple2[String,Int]](Array("s", 10)) should equal(Some("s" -> 10))
     }
   }
+  describe("Writer for recursive structures") {
+    it("is possible") {
+      DBO("r" -> Rec(123, None))() should containField("r")
+      DBO("r" -> Rec(123, Some(Rec(234,None) :: Nil)))() should containField("r")
+    }
+  }
 }

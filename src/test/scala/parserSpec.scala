@@ -75,4 +75,16 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
       parser(dbo("event", new BsonSym("ourtype")).add("version", 2).add("l", 10).get) should be('right)
     }
   }
+  describe("Parser for recursive structures") {
+    it("is possible") {
+      Rec.Doc( DBO("id" -> 123)() ) should equal(Right(Rec(123, None)))
+
+    }
+    it("can be used as another field") {
+      val y = DocParser.get[Rec]("y")
+      val r = Rec(123, Some(Rec(234, None) :: Rec(345, Some(Rec(456, None) :: Nil)) :: Nil))
+      val dbo = DBO("y" -> r)()
+      y(dbo) should equal(Right(r))
+    }
+  }
 }
