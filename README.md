@@ -2,8 +2,12 @@
 
 **Subset** 2.x provides simple and extensible APIs:
 
-* for building `DBObject` structures for subsequent use in MongoDB driver API
-* to parse the resulting `DBObject` documents and transform them
+* to build `DBObject` structures for subsequent use in MongoDB driver API
+
+  in type-safe, Anorm-like manner
+* to parse the resulting `DBObject` documents
+
+  in terms of parser combinators
 
 
 ## DBObject builder
@@ -200,6 +204,6 @@ implicit val jodaDateTime = Field[DateTime]({
 }
 ```
 
-# Installing
+# Installation
 
 [Instructions](http://ls.implicit.ly/osinka/subset2#subset)
