@@ -1,8 +1,9 @@
 # Getting Started
 
-**Subset** 2.x provides simple and extensible APIs for building
-`DBObject` structures to pass them into MongoDB driver queries and to
-parse the resulting documents and to transform them.
+**Subset** 2.x provides simple and extensible APIs:
+
+* for building `DBObject` structures for subsequent use in MongoDB driver API
+* to parse the resulting `DBObject` documents and transform them
 
 
 ## DBObject builder
@@ -40,7 +41,7 @@ you may write the corresponding `BsonWritable`:
 
 ```scala
 object Likes {
-  implicit asBson = BsonWritable[Likes](likes =>
+  implicit val asBson = BsonWritable[Likes](likes =>
     DBO("count" -> likes.count, "latest" -> likes.latest)()
   )
 }
@@ -198,3 +199,7 @@ implicit val jodaDateTime = Field[DateTime]({
   })
 }
 ```
+
+# Installing
+
+[Instructions](http://ls.implicit.ly/osinka/subset2#subset)
