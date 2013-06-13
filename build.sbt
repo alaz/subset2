@@ -8,7 +8,7 @@ homepage := Some(url("https://github.com/osinka/subset2"))
 
 startYear := Some(2013)
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
