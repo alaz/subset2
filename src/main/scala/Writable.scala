@@ -23,8 +23,13 @@ import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
 @implicitNotFound(msg = "Cannot find BsonWritable for ${A}")
-trait BsonWritable[-A] {
+trait BsonWritable[-A] { parent =>
   def apply(a: A): Option[Any]
+
+  def compose[B](fn: B => A) =
+    new BsonWritable[B] {
+      override def apply(b: B) = parent.apply(fn(b))
+    }
 }
 
 object BsonWritable {

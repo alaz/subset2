@@ -39,6 +39,7 @@ case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
         override def apply(x: Any): R = pf2(pf(x))
       })
 
+  def map[R](fn: T => R) = copy(pf = this.pf andThen fn)
 }
 
 object Field {
