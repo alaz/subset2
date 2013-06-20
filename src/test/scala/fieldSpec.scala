@@ -55,4 +55,10 @@ class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rout
       opt.get should equal(Array(1,2,3))
     }
   }
+  describe("Field") {
+    it("can be mapped") {
+      val field = Field.intGetter map (_.toString)
+      field(2) should equal(Some("2"))
+    }
+  }
 }
