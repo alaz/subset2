@@ -206,4 +206,4 @@ implicit val jodaDateTime = Field[DateTime]({
 
 # Installation
 
-[Instructions](http://ls.implicit.ly/osinka/subset2#subset)
+[Instructions](http://ls.implicit.ly/osinka/subset2)
