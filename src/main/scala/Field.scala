@@ -22,17 +22,19 @@ import util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
+import BsonParser.ParseResult
+
 @implicitNotFound(msg = "Cannot find Field for ${A}")
 trait Field[+A] { parent =>
-  def apply(o: Any): Option[A]
+  def apply(o: Any): ParseResult[A]
 
   def map[B](f: A => B): Field[B] = new Field[B] {
-    override def apply(o: Any) = parent.apply(o) map f
+    override def apply(o: Any) = parent.apply(o).right map f
   }
 }
 
 case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
-  override def apply(o: Any): Option[T] = PartialFunction.condOpt(o)(pf)
+  override def apply(o: Any): ParseResult[T] = PartialFunction.condOpt(o)(pf).toRight("Can't parse %s" format o)
 
   def orElse[B1 >: T](pf2: PartialFunction[Any,B1]): FieldPf[B1] = copy(pf = pf orElse pf2)
   def orElse[B1 >: T](g: FieldPf[B1]): FieldPf[B1] = orElse(g.pf)
@@ -86,29 +88,45 @@ object Field {
       case b: Binary => b.getData
       case a: Array[Byte] => a
     })
-  implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) =
-    Field[Array[T]]({
-      case a: Array[_] => a.asInstanceOf[Array[T]]
-      case list: BasicBSONList => list.asScala.flatMap(r.apply _).toArray
-    })
+  implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) = new Field[Array[T]] {
+    override def apply(o: Any) = o match {
+      case a: Array[_] => mergeResults(a.map(r.apply _)).right.map(_.toArray)
+      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply _)).right.map(_.toArray)
+    }
+  }
 
   implicit def optionGetter[T](implicit r: Field[T]) =
     new Field[Option[T]] {
-      override def apply(o: Any): Option[Option[T]] = Some(r.apply(o))
+      override def apply(o: Any): ParseResult[Option[T]] = r.apply(o).right map Some.apply
     }
-  implicit def listGetter[T](implicit r: Field[T]) =
-    Field[List[T]]({
-      case ar: Array[_] => ar.flatMap(r.apply _).toList
-      case list: BasicBSONList => list.asScala.flatMap(r.apply _).toList
-    })
+
+  implicit def listGetter[T](implicit r: Field[T]) = new Field[List[T]] {
+    override def apply(o: Any) = o match {
+      case ar: Array[_] => mergeResults(ar.map(r.apply))
+      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply))
+    }
+  }
+
   implicit def tuple2Getter[T1,T2](implicit r1: Field[T1], r2: Field[T2]) =
     new Field[Tuple2[T1,T2]] {
-      override def apply(o: Any): Option[Tuple2[T1,T2]] =
+      override def apply(o: Any): ParseResult[Tuple2[T1,T2]] =
         o match {
           case a: Array[_] if a.size == 2 =>
-            for {v1 <- r1.apply(a(0)); v2 <- r2.apply(a(1))}
-            yield (v1, v2)
+            for {
+              v1 <- r1(a(0)).right
+              v2 <- r2(a(1)).right
+            } yield (v1, v2)
         }
     }
   // TODO: Field[Map[String,T]]
+
+  def mergeResults[L, R](results: Seq[Either[L, R]]): Either[L, List[R]] = {
+    @annotation.tailrec
+    def helper(eithers: Seq[Either[L, R]], acc: List[R]): Either[L, List[R]] = eithers match {
+      case Left(err) :: xs => Left(err)
+      case Right(x) :: xs => helper(xs, x :: acc)
+      case _ => Right(acc.reverse)
+    }
+    helper(results, Nil)
+  }
 }

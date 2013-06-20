@@ -84,7 +84,7 @@ object DocParser {
 
   def get[T](name: String)(implicit f: Field[T]): DocParser[T] =
     DocParser[T] { doc =>
-      Option(doc.get(name)) flatMap (f.apply(_)) toRight ("No field `"+name+"`")
+      Option(doc.get(name)) map f.apply getOrElse Left("No field `"+name+"`")
     }
 
   def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
