@@ -23,8 +23,12 @@ import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
 @implicitNotFound(msg = "Cannot find Field for ${A}")
-trait Field[+A] {
+trait Field[+A] { parent =>
   def apply(o: Any): Option[A]
+
+  def map[B](f: A => B): Field[B] = new Field[B] {
+    override def apply(o: Any) = parent.apply(o) map f
+  }
 }
 
 case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
@@ -38,8 +42,6 @@ case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
         override def isDefinedAt(x: Any) = pf.isDefinedAt(x) && pf2.isDefinedAt(pf(x))
         override def apply(x: Any): R = pf2(pf(x))
       })
-
-  def map[R](fn: T => R) = copy(pf = this.pf andThen fn)
 }
 
 object Field {
