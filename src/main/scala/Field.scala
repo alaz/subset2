@@ -88,7 +88,8 @@ object Field {
     })
   implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) =
     Field[Array[T]]({
-      case a: Array[_] => a.asInstanceOf[Array[T]]
+      case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => a.asInstanceOf[Array[T]]
+      case a: Array[_] => a.flatMap(r.apply _)
       case list: BasicBSONList => list.asScala.flatMap(r.apply _).toArray
     })
 

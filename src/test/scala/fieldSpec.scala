@@ -54,6 +54,27 @@ class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rout
       opt should be('defined)
       opt.get should equal(Array(1,2,3))
     }
+    it("must use Field.apply on array items") {
+      case class F(i: Int)
+      implicit val field = Field[F] { case i: Int => F(i) }
+      val opt = unpack[Array[F]](Array(1,2))
+      opt should be('defined)
+      opt.get should equal(Array(F(1), F(2)))
+    }
+    it("must return array of matching primitive types as is") {
+      val arr = Array(1, 2)
+      val opt = unpack[Array[Int]](arr)
+      opt should be('defined)
+      opt.get should (be theSameInstanceAs arr)
+    }
+    it("must convert array of not-matching primitive types") {
+      import SmartFields.doubleRecoveringGetter
+      val arr = Array(1, 2)
+      val opt = unpack[Array[Double]](arr)
+      opt should be('defined)
+      opt.get should not (be theSameInstanceAs arr)
+      opt.get should equal(Array(1.0, 2.0))
+    }
   }
   describe("Field") {
     it("can be mapped") {
