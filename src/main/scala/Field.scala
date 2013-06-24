@@ -89,8 +89,8 @@ object Field {
   implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) = new Field[Array[T]] {
     override def apply(v: Any) = v match {
       case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => Some(a.asInstanceOf[Array[T]])
-      case a: Array[_] => mergeResults(a.map(r.apply _)).map(_.toArray)
-      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply _)).map(_.toArray)
+      case a: Array[_] => allOrNone(a map (r.apply _)) map(_.toArray)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toArray)
     }
   }
 
@@ -100,8 +100,8 @@ object Field {
     }
   implicit def listGetter[T](implicit r: Field[T]) = new Field[List[T]] {
     override def apply(v: Any) = v match {
-      case ar: Array[_] => mergeResults(ar.map(r.apply _))
-      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply _))
+      case ar: Array[_] => allOrNone(ar.map(r.apply _).toList) map(_.toList)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toList)
     }
   }
   implicit def tuple2Getter[T1,T2](implicit r1: Field[T1], r2: Field[T2]) =
@@ -114,11 +114,11 @@ object Field {
         }
     }
 
-  def mergeResults[T](results: Traversable[Option[T]]): Option[List[T]] = {
-    results.foldLeft[Option[List[T]]](Some(Nil)) { (res, item) =>
-      for (x <- item; xs <- res) yield x :: xs
-    } map (_.reverse)
-  }
+  def allOrNone[T](results: Traversable[Option[T]]): Option[Traversable[T]] =
+    if (results exists (_.isEmpty))
+      None
+    else
+      Some(results.flatten)
 
   // TODO: Field[Map[String,T]]
 }

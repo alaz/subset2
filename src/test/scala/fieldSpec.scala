@@ -87,15 +87,15 @@ class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rout
       field(2) should equal(Some("2"))
     }
   }
-  describe("mergeResults") {
+  describe("allOrNone") {
     it("converts sequence of Some into Some(sequence)") {
-      Field.mergeResults(Seq(Some(1), Some(2))) should equal(Some(List(1, 2)))
+      Field.allOrNone(Seq(Some(1), Some(2))) should equal(Some(List(1, 2)))
     }
     it("converts empty sequence into Some(Nil)") {
-      Field.mergeResults(Seq()) should equal(Some(Nil))
+      Field.allOrNone(Seq()) should equal(Some(Nil))
     }
     it("returns None if any item is None") {
-      Field.mergeResults(Seq(Some(1), None)) should equal(None)
+      Field.allOrNone(Seq(Some(1), None)) should equal(None)
     }
   }
 }
