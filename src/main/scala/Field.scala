@@ -86,22 +86,24 @@ object Field {
       case b: Binary => b.getData
       case a: Array[Byte] => a
     })
-  implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) =
-    Field[Array[T]]({
-      case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => a.asInstanceOf[Array[T]]
-      case a: Array[_] => a.flatMap(r.apply _)
-      case list: BasicBSONList => list.asScala.flatMap(r.apply _).toArray
-    })
+  implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) = new Field[Array[T]] {
+    override def apply(v: Any) = v match {
+      case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => Some(a.asInstanceOf[Array[T]])
+      case a: Array[_] => allOrNone(a map (r.apply _)) map(_.toArray)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toArray)
+    }
+  }
 
   implicit def optionGetter[T](implicit r: Field[T]) =
     new Field[Option[T]] {
       override def apply(o: Any): Option[Option[T]] = Some(r.apply(o))
     }
-  implicit def listGetter[T](implicit r: Field[T]) =
-    Field[List[T]]({
-      case ar: Array[_] => ar.flatMap(r.apply _).toList
-      case list: BasicBSONList => list.asScala.flatMap(r.apply _).toList
-    })
+  implicit def listGetter[T](implicit r: Field[T]) = new Field[List[T]] {
+    override def apply(v: Any) = v match {
+      case ar: Array[_] => allOrNone(ar.map(r.apply _).toList) map(_.toList)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toList)
+    }
+  }
   implicit def tuple2Getter[T1,T2](implicit r1: Field[T1], r2: Field[T2]) =
     new Field[Tuple2[T1,T2]] {
       override def apply(o: Any): Option[Tuple2[T1,T2]] =
@@ -111,5 +113,12 @@ object Field {
             yield (v1, v2)
         }
     }
+
+  def allOrNone[T](results: Traversable[Option[T]]): Option[Traversable[T]] =
+    if (results exists (_.isEmpty))
+      None
+    else
+      Some(results.flatten)
+
   // TODO: Field[Map[String,T]]
 }
