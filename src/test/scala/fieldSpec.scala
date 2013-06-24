@@ -75,11 +75,27 @@ class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rout
       opt.get should not (be theSameInstanceAs arr)
       opt.get should equal(Array(1.0, 2.0))
     }
+    it("must return None if at least one item conversion failed") {
+      val arr = Array(1, 2.0)
+      val opt = unpack[Array[Int]](arr)
+      opt should be('empty)
+    }
   }
   describe("Field") {
     it("can be mapped") {
       val field = Field.intGetter map (_.toString)
       field(2) should equal(Some("2"))
+    }
+  }
+  describe("mergeResults") {
+    it("converts sequence of Some into Some(sequence)") {
+      Field.mergeResults(Seq(Some(1), Some(2))) should equal(Some(List(1, 2)))
+    }
+    it("converts empty sequence into Some(Nil)") {
+      Field.mergeResults(Seq()) should equal(Some(Nil))
+    }
+    it("returns None if any item is None") {
+      Field.mergeResults(Seq(Some(1), None)) should equal(None)
     }
   }
 }
