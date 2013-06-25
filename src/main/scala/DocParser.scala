@@ -18,94 +18,38 @@ package com.osinka.subset
 import org.bson.types.ObjectId
 import com.mongodb.DBObject
 
-import BsonParser.{ParseResult,Document}
-
-object BsonParser {
-  type ParseResult[+A] = Either[String,A]
-  type Document = DBObject
-}
-
-case class ~[+A, +B](_1: A, _2: B)
-
-trait DocParser[+A] extends (Document => ParseResult[A]) { parent =>
-  def map[B](f: A => B): DocParser[B] = DocParser(parent.andThen(_.right.map(f)))
-
-  def collect[B](otherwise: String)(f: PartialFunction[A, B]): DocParser[B] =
-    DocParser(parent(_).right flatMap {a => f.lift(a).toRight(otherwise) })
-
-  def flatMap[B](f: A => DocParser[B]): DocParser[B] = DocParser(doc => parent(doc).right flatMap (a => f(a)(doc)))
-
-  def ~[B](p: DocParser[B]): DocParser[A ~ B] = DocParser(doc => parent(doc).right flatMap (a => p(doc).right map (new ~(a, _))))
-
-  def ~>[B](p: DocParser[B]): DocParser[B] = DocParser(doc => parent(doc).right flatMap (a => p(doc)))
-
-  def <~[B](p: DocParser[B]): DocParser[A] = parent.~(p).map(_._1)
-
-  def |[B >: A](p: DocParser[B]): DocParser[B] = DocParser(doc => parent(doc) fold (_ => p(doc), a => Right(a)))
-
-  def opt : DocParser[Option[A]] = DocParser(doc => Right(parent(doc).right.toOption))
-
-  def >>[B](f: A => DocParser[B]): DocParser[B] = flatMap(f)
-
-  /* parsers in pattern matching, when errors are not relevant
-   *
-   * ```
-   * val parser: DocParser[Int] = ...
-   * collection.find().asScala collect {
-   *   case parser(i) => i
-   * }
-   * ```
-   */
-  def unapply(doc: Document): Option[A] = apply(doc).right.toOption
-
-  /**
-   * optimistic parsing, e.g. we assuming we can parse everything we get. Otherwise
-   * we'll get exception
-   *
-   * ```
-   * collection.find().asScala map {parser.parse}
-   * ```
-   */
-  def parse: Document => A =
-    this(_) fold (msg => throw new Exception(msg), x => x)
-}
-
 object DocParser {
-  def apply[A](f: Document => ParseResult[A]): DocParser[A] =
-    new DocParser[A] {
-      def apply(dbo: Document): ParseResult[A] = f(dbo)
-    }
-
-  def get[T : Field](path: Seq[String]): DocParser[T] =
+  def get[T : Field](path: Seq[String]): Field[T] =
     path match {
       case Seq(name) => get[T](name)
       case _ => doc[T](path.head)(get[T](path.tail))
     }
 
-  def get[T](name: String)(implicit f: Field[T]): DocParser[T] =
-    DocParser[T] { doc =>
-      Option(doc.get(name)) map f.apply getOrElse Left("No field `"+name+"`")
-    }
+  def get[T](name: String)(implicit f: Field[T]): Field[T] =
+    FieldF[T] { _ match {
+      case o: DBObject => Option(o.get(name)) map f.apply getOrElse Left("No field `"+name+"`")
+      case _ => Left("Not object")
+    }}
 
-  def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
-    get[DBObject](name).flatMap(doc => DocParser[T](_ => parser(doc)))
+  def doc[T](name: String)(parser: Field[T])(implicit f: Field[DBObject]): Field[T] =
+    get[DBObject](name).flatMap(doc => FieldF[T](_ => parser(doc)))
 
-  def int(name: String)(implicit f: Field[Int]): DocParser[Int] = get[Int](name)
+  def int(name: String)(implicit f: Field[Int]): Field[Int] = get[Int](name)
 
-  def str(name: String)(implicit f: Field[String]): DocParser[String] = get[String](name)
+  def str(name: String)(implicit f: Field[String]): Field[String] = get[String](name)
 
-  def bool(name: String)(implicit f: Field[Boolean]): DocParser[Boolean] = get[Boolean](name)
+  def bool(name: String)(implicit f: Field[Boolean]): Field[Boolean] = get[Boolean](name)
 
-  def long(name: String)(implicit f: Field[Long]): DocParser[Long] = get[Long](name)
+  def long(name: String)(implicit f: Field[Long]): Field[Long] = get[Long](name)
 
-  def sym(name: String)(implicit f: Field[Symbol]): DocParser[Symbol] = get[Symbol](name)
+  def sym(name: String)(implicit f: Field[Symbol]): Field[Symbol] = get[Symbol](name)
 
-  def oid(name: String)(implicit f: Field[ObjectId]): DocParser[ObjectId] = get[ObjectId](name)
+  def oid(name: String)(implicit f: Field[ObjectId]): Field[ObjectId] = get[ObjectId](name)
 
-  def contains[T : Field](name: String, t: T): DocParser[Unit] =
+  def contains[T : Field](name: String, t: T): Field[Unit] =
     get[T](name).collect("No field `"+name+"` with value `"+t+"`") { case a if a == t => Unit }
 
-  def fails(msg: String) = DocParser[Unit](_ => Left(msg))
+  def fails(msg: String) = FieldF[Unit](_ => Left(msg))
 
-  def docId(implicit f: Field[ObjectId]): DocParser[ObjectId] = oid("_id")
+  def docId(implicit f: Field[ObjectId]): Field[ObjectId] = oid("_id")
 }

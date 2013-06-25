@@ -22,15 +22,63 @@ import util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
-import BsonParser.ParseResult
+object BsonParser {
+  type ParseResult[+A] = Either[String,A]
+  type Document = DBObject
+}
+
+import BsonParser.{ParseResult,Document}
+
+case class ~[+A, +B](_1: A, _2: B)
 
 @implicitNotFound(msg = "Cannot find Field for ${A}")
 trait Field[+A] { parent =>
   def apply(o: Any): ParseResult[A]
 
-  def map[B](f: A => B): Field[B] = new Field[B] {
-    override def apply(o: Any) = parent.apply(o).right map f
-  }
+  def map[B](f: A => B): Field[B] = FieldF[B](o => parent.apply(o).right map f)
+
+  def collect[B](otherwise: String)(f: PartialFunction[A, B]): Field[B] =
+    FieldF(parent(_).right flatMap {a => f.lift(a).toRight(otherwise) })
+
+  def flatMap[B](f: A => Field[B]): Field[B] = FieldF(doc => parent(doc).right flatMap (a => f(a)(doc)))
+
+  def ~[B](p: Field[B]): Field[A ~ B] = FieldF(doc => parent(doc).right flatMap (a => p(doc).right map (new ~(a, _))))
+
+  def ~>[B](p: Field[B]): Field[B] = FieldF(doc => parent(doc).right flatMap (a => p(doc)))
+
+  def <~[B](p: Field[B]): Field[A] = parent.~(p).map(_._1)
+
+  def |[B >: A](p: Field[B]): Field[B] = FieldF(doc => parent(doc) fold (_ => p(doc), a => Right(a)))
+
+  def opt: Field[Option[A]] = FieldF(doc => Right(parent(doc).right.toOption))
+
+  def >>[B](f: A => Field[B]): Field[B] = flatMap(f)
+
+  /* parsers in pattern matching, when errors are not relevant
+   *
+   * ```
+   * val parser: DocParser[Int] = ...
+   * collection.find().asScala collect {
+   *   case parser(i) => i
+   * }
+   * ```
+   */
+  def unapply(doc: Any): Option[A] = apply(doc).right.toOption
+
+  /**
+   * optimistic parsing, e.g. we assuming we can parse everything we get. Otherwise
+   * we'll get exception
+   *
+   * ```
+   * collection.find().asScala map {parser.parse}
+   * ```
+   */
+  def parse: Any => A =
+    this(_) fold (msg => throw new Exception(msg), x => x)
+}
+
+case class FieldF[T](f: Any => ParseResult[T]) extends Field[T]{
+    override def apply(o: Any) = f(o)
 }
 
 case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
@@ -89,21 +137,23 @@ object Field {
       case a: Array[Byte] => a
     })
   implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) = new Field[Array[T]] {
-    override def apply(o: Any) = o match {
-      case a: Array[_] => mergeResults(a.map(r.apply _)).right.map(_.toArray)
-      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply _)).right.map(_.toArray)
+    override def apply(v: Any) = v match {
+      case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => Right(a.asInstanceOf[Array[T]])
+      case a: Array[_] => allOrNone(a map (r.apply _)).right.map(_.toArray)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)).right.map(_.toArray)
+
     }
   }
 
   implicit def optionGetter[T](implicit r: Field[T]) =
     new Field[Option[T]] {
-      override def apply(o: Any): ParseResult[Option[T]] = r.apply(o).right map Some.apply
+      override def apply(o: Any): ParseResult[Option[T]] = Right(r.apply(o).right.toOption)
     }
 
   implicit def listGetter[T](implicit r: Field[T]) = new Field[List[T]] {
-    override def apply(o: Any) = o match {
-      case ar: Array[_] => mergeResults(ar.map(r.apply))
-      case list: BasicBSONList => mergeResults(list.asScala.map(r.apply))
+    override def apply(v: Any) = v match {
+      case ar: Array[_] => allOrNone(ar.map(r.apply _)).right.map(_.toList)
+      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)).right.map(_.toList)
     }
   }
 
@@ -118,15 +168,12 @@ object Field {
             } yield (v1, v2)
         }
     }
+
+  def allOrNone[L, R](results: Seq[Either[L, R]]): Either[L, List[R]] =
+    results collectFirst {
+      case Left(msg) => Left(msg)
+    } getOrElse Right(results.map(_.right.get).toList)
+
   // TODO: Field[Map[String,T]]
 
-  def mergeResults[L, R](results: Seq[Either[L, R]]): Either[L, List[R]] = {
-    @annotation.tailrec
-    def helper(eithers: Seq[Either[L, R]], acc: List[R]): Either[L, List[R]] = eithers match {
-      case Left(err) :: xs => Left(err)
-      case Right(x) :: xs => helper(xs, x :: acc)
-      case _ => Right(acc.reverse)
-    }
-    helper(results, Nil)
-  }
 }
