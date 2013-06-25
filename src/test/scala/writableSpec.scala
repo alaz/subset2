@@ -58,7 +58,7 @@ class writableSpec extends FunSpec with ShouldMatchers with MongoMatchers with R
       pack("s" -> 10).map{_.asInstanceOf[Array[_]].toList} should equal(Some(Array("s", 10).toList))
     }
     it("gets Tuple2") {
-      unpack[Tuple2[String,Int]](Array("s", 10)) should equal(Some("s" -> 10))
+      unpack[Tuple2[String,Int]](Array("s", 10)) should equal(Right("s" -> 10))
     }
   }
   describe("Writer for recursive structures") {

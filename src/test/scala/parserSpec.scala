@@ -43,7 +43,7 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
   }
   describe("Combinator") {
     it("converts to optional") {
-      val parser: DocParser[Option[Int]] = int("a").opt
+      val parser: Field[Option[Int]] = int("a").opt
 
       parser.apply(dbo("a", 10).get) should equal(Right(Some(10)))
       parser.apply(dbo.get) should equal(Right(None))
@@ -100,6 +100,22 @@ class parserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rou
       val r = Rec(123, Some(Rec(234, None) :: Rec(345, Some(Rec(456, None) :: Nil)) :: Nil))
       val dbo = DBO("y" -> r)()
       y(dbo) should equal(Right(r))
+    }
+  }
+
+  describe("Parser as Field") {
+    case class Point(x: Int, y: Int)
+
+    it("can be used implicitly") {
+      implicit val parsePoint = int("x") ~ int("y") map { case x ~ y => Point(x, y) }
+
+      get[Point]("p").apply(dbo.push("p").add("x", 10).add("y", 20).get) should equal(Right(Point(10, 20)))
+    }
+
+    it("can be used explicitly") {
+      get[Point]("p")(
+        int("x") ~ int("y") map { case x ~ y => Point(x, y) }
+      ).apply(dbo.push("p").add("x", 10).add("y", 20).get) should equal(Right(Point(10, 20)))
     }
   }
 }

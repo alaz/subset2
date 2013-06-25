@@ -42,15 +42,12 @@ object Rec {
   implicit object recField extends Field[Rec] {
     import DocParser._
 
-    lazy val Doc: DocParser[Rec] =
+    lazy val Doc: Field[Rec] =
       get[Int]("id") ~ get[List[Rec]]("children").opt map {
         case id ~ children => new Rec(id, children)
       }
 
-    override def apply(o: Any): Option[Rec] =
-      PartialFunction.condOpt(o) {
-        case Doc(rec) => rec
-      }
+    override def apply(o: Any) = Doc(o)
   }
   def Doc = recField.Doc // so that we don't need to change the spec
 }
