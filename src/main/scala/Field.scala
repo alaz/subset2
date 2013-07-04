@@ -114,7 +114,7 @@ object Field {
         }
     }
 
-  implicit def fromParser[T](implicit p: DocParser[T]) = Field({ case p(v) => v })
+  implicit def fromParser[T](implicit p: DocParser[T]) = Field[T]({ case p(v) => v })
 
   def allOrNone[T](results: Traversable[Option[T]]): Option[Traversable[T]] =
     if (results exists (_.isEmpty))
