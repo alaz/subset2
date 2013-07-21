@@ -155,7 +155,7 @@ you know you have a subdocument `user` holding `User` you would write
 something like
 
 ```scala
-val logEntryWithUser: DocParser[LogEntry] = logEntry ~ doc("user")(userParser)
+val logEntryWithUser = logEntry ~ doc("user")(userParser)
 ```
 
 Since MongoDB provides a *dot-syntax* to dig into documents,
