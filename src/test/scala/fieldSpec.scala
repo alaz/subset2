@@ -81,6 +81,22 @@ class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Rout
       opt should be('empty)
     }
   }
+  describe("Tuple reader") {
+    it("must read from Array") {
+      val arr = Array(2, "str")
+      val opt = unpack[(Int,String)](arr)
+      opt should be('defined)
+      opt should equal(Some(2 -> "str"))
+    }
+    it("must read from BSONList") {
+      val da = new BasicDBList
+      da.put(0, 2)
+      da.put(1, "str")
+      val opt = unpack[(Int,String)](da)
+      opt should be('defined)
+      opt should equal(Some(2 -> "str"))
+    }
+  }
   describe("Field") {
     it("can be mapped") {
       val field = Field.intGetter map (_.toString)

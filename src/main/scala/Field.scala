@@ -106,11 +106,14 @@ object Field {
   }
   implicit def tuple2Getter[T1,T2](implicit r1: Field[T1], r2: Field[T2]) =
     new Field[Tuple2[T1,T2]] {
+      def maybeTuple(seq: Seq[_]) =
+        for {v1 <- r1.apply(seq(0)); v2 <- r2.apply(seq(1))}
+        yield (v1, v2)
+
       override def apply(o: Any): Option[Tuple2[T1,T2]] =
         o match {
-          case a: Array[_] if a.size == 2 =>
-            for {v1 <- r1.apply(a(0)); v2 <- r2.apply(a(1))}
-            yield (v1, v2)
+          case list: BasicBSONList if list.size == 2 => maybeTuple(list.asScala)
+          case a: Array[_] if a.size == 2 => maybeTuple(a)
         }
     }
 
