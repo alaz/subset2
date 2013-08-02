@@ -50,6 +50,8 @@ object Field {
 
   def apply[T](pf: PartialFunction[Any,T]): FieldPf[T] = new FieldPf[T](pf)
 
+  def read[T](o: Any)(implicit f: Field[T]): Option[T] = f(o)
+
   //
   // Default readers
   //
@@ -89,8 +91,8 @@ object Field {
   implicit def arrayGetter[T](implicit r: Field[T], m: Manifest[T]) = new Field[Array[T]] {
     override def apply(v: Any) = v match {
       case a: Array[_] if m.isInstanceOf[reflect.AnyValManifest[_]] && a.getClass == m.arrayManifest.runtimeClass => Some(a.asInstanceOf[Array[T]])
-      case a: Array[_] => allOrNone(a map (r.apply _)) map(_.toArray)
-      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toArray)
+      case a: Array[_] => allOrNone(a map (Field.read[T])) map(_.toArray)
+      case list: BasicBSONList => allOrNone(list.asScala map (Field.read[T])) map(_.toArray)
     }
   }
 
@@ -100,14 +102,14 @@ object Field {
     }
   implicit def listGetter[T](implicit r: Field[T]) = new Field[List[T]] {
     override def apply(v: Any) = v match {
-      case ar: Array[_] => allOrNone(ar.map(r.apply _).toList) map(_.toList)
-      case list: BasicBSONList => allOrNone(list.asScala map (r.apply _)) map(_.toList)
+      case ar: Array[_] => allOrNone(ar.map(Field.read[T]).toList) map(_.toList)
+      case list: BasicBSONList => allOrNone(list.asScala map (Field.read[T])) map(_.toList)
     }
   }
   implicit def tuple2Getter[T1,T2](implicit r1: Field[T1], r2: Field[T2]) =
     new Field[Tuple2[T1,T2]] {
       def maybeTuple(seq: Seq[_]) =
-        for {v1 <- r1.apply(seq(0)); v2 <- r2.apply(seq(1))}
+        for {v1 <- Field.read[T1](seq(0)); v2 <- Field.read[T2](seq(1))}
         yield (v1, v2)
 
       override def apply(o: Any): Option[Tuple2[T1,T2]] =

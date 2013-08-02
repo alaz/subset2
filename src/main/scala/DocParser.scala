@@ -82,9 +82,9 @@ object DocParser {
       case _ => doc[T](path.head)(get[T](path.tail))
     }
 
-  def get[T](name: String)(implicit f: Field[T]): DocParser[T] =
+  def get[T : Field](name: String): DocParser[T] =
     DocParser[T] { doc =>
-      Option(doc.get(name)) flatMap (f.apply(_)) toRight ("No field `"+name+"`")
+      Option(doc.get(name)) flatMap (Field.read[T]) toRight ("No field `"+name+"`")
     }
 
   def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
