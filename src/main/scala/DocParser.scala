@@ -87,6 +87,11 @@ object DocParser {
       Option(doc.get(name)) flatMap (Field.read[T]) toRight ("No field `"+name+"`")
     }
 
+  def getRaw(name: String) =
+    DocParser[Any] { doc =>
+      Option(doc.get(name)) toRight ("No field `"+name+"`")
+    }
+
   def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
     get[DBObject](name).flatMap(doc => DocParser[T](_ => parser(doc)))
 
@@ -104,6 +109,8 @@ object DocParser {
 
   def contains[T : Field](name: String, t: T): DocParser[Unit] =
     get[T](name).collect("No field `"+name+"` with value `"+t+"`") { case a if a == t => Unit }
+
+  def success[T](x: T) = DocParser[T](_ => Right(x))
 
   def fails(msg: String) = DocParser[Unit](_ => Left(msg))
 
