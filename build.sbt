@@ -1,5 +1,3 @@
-import ls.Plugin._
-
 organization := "com.osinka.subset"
 
 name := "subset"
@@ -8,7 +6,7 @@ homepage := Some(url("https://github.com/osinka/subset2"))
 
 startYear := Some(2013)
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
@@ -20,7 +18,7 @@ scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.11.3",
-  "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
+  "org.scalatest" %% "scalatest" % "2.0.RC1" % "test"
 )
 
 credentials <+= (version) map { version: String =>
@@ -42,12 +40,6 @@ publishTo <<= (version) { version: String =>
 }
 
 useGpg := true
-
-seq(lsSettings: _*)
-
-(LsKeys.tags in LsKeys.lsync) := Seq("mongo", "mongodb", "bson", "persistence", "document")
-
-(LsKeys.docsUrl in LsKeys.lsync) := Some(url("https://github.com/osinka/subset2"))
 
 pomExtra := <xml:group>
     <developers>
