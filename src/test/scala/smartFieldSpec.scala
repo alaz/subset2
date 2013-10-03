@@ -15,10 +15,9 @@
  */
 package com.osinka.subset
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FunSpec,Matchers}
 
-class smartFieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routines {
+class smartFieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
   import org.bson.types.{ObjectId, Symbol => BsonSymbol}
   val explicit = SmartFields
 

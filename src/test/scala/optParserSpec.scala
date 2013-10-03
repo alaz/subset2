@@ -15,13 +15,12 @@
  */
 package com.osinka.subset
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FunSpec,Matchers}
 
 import com.mongodb.BasicDBObjectBuilder.{start => dbo}
 import org.bson.types.{ObjectId, Symbol => BsonSym}
 
-class optParserSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routines {
+class optParserSpec extends FunSpec with Matchers with MongoMatchers with Routines {
   import DocParser._
 
   describe("Optional parser") {

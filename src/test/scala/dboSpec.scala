@@ -15,11 +15,10 @@
  */
 package com.osinka.subset
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FunSpec,Matchers}
 import com.mongodb.DBObject
 
-class dboSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routines {
+class dboSpec extends FunSpec with Matchers with MongoMatchers with Routines {
   describe("empty builder") {
     it("returns empty DBObject") {
       DBO.empty.builder should be('empty)

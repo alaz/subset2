@@ -15,12 +15,11 @@
  */
 package com.osinka.subset
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FunSpec,Matchers}
 
 import com.mongodb.BasicDBList
 
-class fieldSpec extends FunSpec with ShouldMatchers with MongoMatchers with Routines {
+class fieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
   describe("Option reader") {
     it("never returns None") {
       unpack[Option[Int]](1) should equal(Some(Some(1)))
