@@ -18,7 +18,7 @@ scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.11.4",
-  "org.scalatest" %% "scalatest" % "2.0" % "test"
+  "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 )
 
 credentials <+= (version) map { version: String =>
