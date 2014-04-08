@@ -73,7 +73,7 @@ object Field {
   implicit val stringGetter = Field[String]({
     case s: String => s
     case s: BsonSymbol => s.getSymbol
-    case oid: ObjectId => oid.toStringMongod
+    case oid: ObjectId => oid.toHexString
   })
   implicit val symbolGetter = Field[Symbol]({
     case s: Symbol => s
