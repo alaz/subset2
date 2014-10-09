@@ -140,7 +140,7 @@ And method `|` lets you select between parsers:
 val logEntry: DocParser[LogEntry] = {
   val ver1: DocParser[LogEntry] = int("f") map {i => LogEntryV1(i)}
   val ver2: DocParser[LogEntry] = str("s") map {s => LogEntryV2(s)}
-  
+
   (contains("version", 1) ~> ver1 |
    contains("version", 2) ~> ver2)
 }
@@ -206,4 +206,6 @@ implicit val jodaDateTime = Field[DateTime]({
 
 # Installation
 
-[Instructions](http://ls.implicit.ly/osinka/subset2)
+```
+libraryDependencies += "com.osinka.subset" %% "subset" % "2.1.4"
+```
