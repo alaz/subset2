@@ -19,7 +19,7 @@ description := """MongoDB Document parser combinators and builders"""
 scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "2.12.3",
+  "org.mongodb" % "mongo-java-driver" % "2.12.4",
   "org.scalatest" %% "scalatest" % "2.2.2" % "test"
 )
 
