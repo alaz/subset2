@@ -15,9 +15,9 @@
  */
 package com.osinka.subset
 
-import org.scalatest.{FunSpec,Matchers}
+import org.scalatest.{FunSpec,Matchers,OptionValues}
 
-class writableSpec extends FunSpec with Matchers with MongoMatchers with Routines {
+class writableSpec extends FunSpec with Matchers with MongoMatchers with OptionValues with Routines {
   describe("Base primitives serializer") {
     import org.bson.types.{Symbol => BsonSymbol}
 
@@ -37,19 +37,13 @@ class writableSpec extends FunSpec with Matchers with MongoMatchers with Routine
   }
   describe("List writer") {
     it("sets empty List[T]") {
-      val o = pack(Nil: List[Int])
-      o should be('defined)
-      o.get should equal(Array[Int]())
+      pack(Nil: List[Int]).value should equal(Array[Int]())
     }
     it("sets non-empty List[T]") {
-      val o = pack(List(1,2))
-      o should be('defined)
-      o.get should equal(Array(1,2))
+      pack(List(1,2)).value should equal(Array(1,2))
     }
     it("sets Iterable[T]") {
-      val o = pack(Iterable(1,2))
-      o should be('defined)
-      o.get should equal(Array(1,2))
+      pack(Iterable(1,2)).value should equal(Array(1,2))
     }
   }
   describe("Tuple writer") {

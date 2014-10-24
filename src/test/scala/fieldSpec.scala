@@ -15,11 +15,11 @@
  */
 package com.osinka.subset
 
-import org.scalatest.{FunSpec,Matchers}
+import org.scalatest.{FunSpec,Matchers,OptionValues}
 
 import com.mongodb.BasicDBList
 
-class fieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
+class fieldSpec extends FunSpec with Matchers with MongoMatchers with OptionValues with Routines {
   describe("Option reader") {
     it("never returns None") {
       unpack[Option[Int]](1) should equal(Some(Some(1)))
@@ -50,29 +50,23 @@ class fieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
     }
     it("gets Array[T] from Array") {
       val opt = unpack[Array[Int]](Array(1,2,3))
-      opt should be('defined)
-      opt.get should equal(Array(1,2,3))
+      opt.value should equal(Array(1,2,3))
     }
     it("must use Field.apply on array items") {
       case class F(i: Int)
       implicit val field = Field[F] { case i: Int => F(i) }
       val opt = unpack[Array[F]](Array(1,2))
-      opt should be('defined)
-      opt.get should equal(Array(F(1), F(2)))
+      opt.value should equal(Array(F(1), F(2)))
     }
     it("must return array of matching primitive types as is") {
       val arr = Array(1, 2)
-      val opt = unpack[Array[Int]](arr)
-      opt should be('defined)
-      opt.get should (be theSameInstanceAs arr)
+      unpack[Array[Int]](arr).value should (be theSameInstanceAs arr)
     }
     it("must convert array of not-matching primitive types") {
       import SmartFields.doubleRecoveringGetter
       val arr = Array(1, 2)
       val opt = unpack[Array[Double]](arr)
-      opt should be('defined)
-      opt.get should not (be theSameInstanceAs arr)
-      opt.get should equal(Array(1.0, 2.0))
+      opt.value should (not (be theSameInstanceAs arr) and equal(Array(1.0, 2.0)))
     }
     it("must return None if at least one item conversion failed") {
       val arr = Array(1, 2.0)
@@ -84,7 +78,6 @@ class fieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
     it("must read from Array") {
       val arr = Array(2, "str")
       val opt = unpack[(Int,String)](arr)
-      opt should be('defined)
       opt should equal(Some(2 -> "str"))
     }
     it("must read from BSONList") {
@@ -92,7 +85,6 @@ class fieldSpec extends FunSpec with Matchers with MongoMatchers with Routines {
       da.put(0, 2)
       da.put(1, "str")
       val opt = unpack[(Int,String)](da)
-      opt should be('defined)
       opt should equal(Some(2 -> "str"))
     }
   }
