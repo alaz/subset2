@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.osinka.subset/subset_2.11/badge.png)](https://maven-badges.herokuapp.com/maven-central/com.osinka.subset/subset_2.11)
+
 # Getting Started
 
 **Subset** 2.x provides simple and extensible APIs:
