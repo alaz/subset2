@@ -16,7 +16,7 @@
 package com.osinka.subset
 
 import org.bson.types.{Symbol => BsonSymbol}
-import com.mongodb.{BasicDBObjectBuilder,BasicDBObject,DBObject}
+import com.mongodb.{BasicDBObjectBuilder,BasicDBObject}
 
 object DBO {
   def empty: DBObjectBuffer =
@@ -34,7 +34,7 @@ object DBO {
 }
 
 /**
- * Mutable buffer. Produces [[com.mongodb.DBObject]]
+ * Mutable buffer. Produces [[com.mongodb.BasicDBObject]]
  */
 class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
   def append[A](k: String, value: A)(implicit writer: BsonWritable[A]): this.type = {
@@ -62,19 +62,19 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
    *
    * Binding values are not looked up for replacement
    */
-  def apply(bindings: DBO.KV*): DBObject = {
+  def apply(bindings: DBO.KV*): BasicDBObject = {
     val m = Map(bindings map { binding => binding.key -> binding.value } :_*)
 
-    def walkDBObject(dbo: DBObject): DBObject = {
+    def walkDBObject(dbo: BasicDBObject): BasicDBObject = {
       import collection.JavaConverters._
 
       for {k <- dbo.keySet.asScala}
         dbo.get(k) match {
-          case inner: DBObject =>
+          case inner: BasicDBObject =>
             walkDBObject(inner)
           case sym: BsonSymbol if m.contains(sym.getSymbol) =>
             m(sym.getSymbol) match {
-              case Some(value) => dbo.put(k, value)
+              case Some(value) => dbo.put(k, value.asInstanceOf[Object])
               case None => dbo.removeField(k)
             }
           case _ =>
@@ -92,7 +92,7 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
 
   /** For those who got used to Anorm
     */
-  def on(bindings: DBO.KV*): DBObject = apply(bindings:_*)
+  def on(bindings: DBO.KV*): BasicDBObject = apply(bindings:_*)
 
   /*
    * In fact, BasicDBObjectBuilder is mutable through the DBObject it creates.
@@ -105,7 +105,7 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
    * could modify the builder freely.
    */
   private def buildSideEffectFreeObject =
-    builder.get.asInstanceOf[BasicDBObject].copy.asInstanceOf[DBObject]
+    builder.get.asInstanceOf[BasicDBObject].copy.asInstanceOf[BasicDBObject]
 
 }
 
