@@ -15,12 +15,16 @@
  */
 package com.osinka.subset
 
+import com.osinka.subset.Field._
+import org.bson.BasicBSONObject
+
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
 import util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
+import scala.collection.JavaConversions._
 
 @implicitNotFound(msg = "Cannot find BsonWritable for ${A}")
 trait BsonWritable[-A] { parent =>
@@ -74,5 +78,13 @@ object BsonWritable {
         for {x1 <- w1.apply(t._1); x2 <- w2.apply(t._2)}
         yield Array(x1,x2)
     }
-  // TODO: BsonWritable[Map[String,T]]
+  implicit def mapSetterStringKey[V](implicit vw: BsonWritable[V]): BsonWritable[Map[String, V]] =
+    new BsonWritable[Map[String, V]] {
+      override def apply(x: Map[String, V]): Option[Any] =
+        allOrNone {
+          x.map {
+            case (key, value) => vw(value).map(key -> _)
+          }
+        }.map(v => new BasicBSONObject(v.toMap))
+    }
 }
