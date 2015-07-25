@@ -87,4 +87,13 @@ object BsonWritable {
           }
         }.map(v => new BasicBSONObject(v.toMap))
     }
+  implicit def mapSetter[K, V](implicit kw: BsonWritable[K], vw: BsonWritable[V], tw: BsonWritable[Tuple2[K, V]]) =
+    new BsonWritable[Map[K, V]] {
+      override def apply(x: Map[K, V]): Option[Any] = Some {
+        x.flatMap {
+          case (key, value) =>
+            tw.apply((key, value))
+        }.toArray
+      }
+    }
 }

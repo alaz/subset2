@@ -143,4 +143,20 @@ object Field {
         case _ => None
       }
   }
+
+  implicit def mapGetter[K, V](implicit tf: Field[(K, V)]) = new Field[Map[K, V]] {
+
+    override def apply(v: Any) = {
+
+      @inline
+      def conv(iter: Iterable[_]) =
+        allOrNone(iter.map(tf(_))).map(_.toMap)
+
+      v match {
+        case ar: Array[_] => conv(ar)
+        case list: BasicBSONList => conv(list.asScala)
+        case _ => None
+      }
+    }
+  }
 }
