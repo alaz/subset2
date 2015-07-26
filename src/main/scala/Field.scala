@@ -20,7 +20,7 @@ import org.bson.BasicBSONObject
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
-import util.matching.Regex
+import scala.util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 import scala.collection.JavaConversions._
