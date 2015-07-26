@@ -15,6 +15,10 @@
  */
 package com.osinka.subset
 
+import java.util
+
+import org.bson.BasicBSONObject
+import org.bson.types.BasicBSONList
 import org.scalatest.{FunSpec,Matchers,OptionValues}
 
 import com.mongodb.BasicDBList
@@ -88,6 +92,32 @@ class fieldSpec extends FunSpec with Matchers with MongoMatchers with OptionValu
       opt should equal(Some(2 -> "str"))
     }
   }
+  describe("Map reader with String key") {
+    it("must read from BasicBSONObject") {
+      val da = new BasicBSONObject("name1", 1L)
+      da.append("name2", 2L)
+//      val opt = unpack[scala.collection.Map[String, Long]](da)
+//      opt should equal(Some(Map("name1" -> 1L, "name2" -> 2L)))
+    }
+  }
+//  describe("Map reader with any key") {
+//    it("must read from BasicBSONList") {
+//      val da = new BasicBSONList()
+//
+//      val firstItem = new BasicBSONList()
+//      firstItem.put(0, 10L)
+//      firstItem.put(1, "value10")
+//      da.put(0, firstItem)
+//
+//      val secondItem = new BasicBSONList()
+//      secondItem.put(0, 20L)
+//      secondItem.put(1, "value20")
+//      da.put(1, secondItem)
+//
+//      val opt = unpack[Map[Long, String]](da)
+//      opt should equal(Some(Map(10L -> "value10", 20L -> "value20")))
+//    }
+//  }
   describe("Field") {
     it("can be mapped") {
       val field = Field.intGetter map (_.toString)

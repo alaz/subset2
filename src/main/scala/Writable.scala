@@ -21,7 +21,7 @@ import org.bson.BasicBSONObject
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
-import util.matching.Regex
+import scala.util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 import scala.collection.JavaConversions._
@@ -69,8 +69,8 @@ object BsonWritable {
       override def apply(x: Option[T]): Option[Any] = x.flatMap(w.apply _)
     }
   implicit def seqSetter[T](implicit w: BsonWritable[T]) =
-    new BsonWritable[Traversable[T]] {
-      override def apply(x: Traversable[T]): Option[Any] = Some( x.flatMap(w.apply _).toArray )
+    new BsonWritable[Seq[T]] {
+      override def apply(x: Seq[T]): Option[Any] = Some( x.flatMap(w.apply _).toArray )
     }
   implicit def tuple2Setter[T1,T2](implicit w1: BsonWritable[T1], w2: BsonWritable[T2]) =
     new BsonWritable[Tuple2[T1,T2]] {
