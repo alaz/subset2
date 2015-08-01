@@ -88,6 +88,13 @@ class fieldSpec extends FunSpec with Matchers with MongoMatchers with OptionValu
       opt should equal(Some(2 -> "str"))
     }
   }
+  describe("Map reader") {
+    it("must read from DBObject") {
+      val dbo = DBO("a" -> 1, "b" -> 2) ()
+      val opt = unpack[Map[String,Int]](dbo)
+      opt should equal(Some(Map("a" -> 1, "b" -> 2)))
+    }
+  }
   describe("Field") {
     it("can be mapped") {
       val field = Field.intGetter map (_.toString)

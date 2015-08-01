@@ -42,8 +42,16 @@ class writableSpec extends FunSpec with Matchers with MongoMatchers with OptionV
     it("sets non-empty List[T]") {
       pack(List(1,2)).value should equal(Array(1,2))
     }
-    it("sets Iterable[T]") {
-      pack(Iterable(1,2)).value should equal(Array(1,2))
+    it("sets Seq[T]") {
+      pack(Seq(1,2)).value should equal(Array(1,2))
+    }
+  }
+  describe("Map writer") {
+    it("encodes an empty Map") {
+      pack(Map.empty[String,Int]).value should equal(DBO.empty())
+    }
+    it("encodes a non-empty Map") {
+      pack(Map("a" -> 1, "b" -> 2)).value should equal(DBO("a" -> 1, "b" ->2)())
     }
   }
   describe("Tuple writer") {

@@ -15,6 +15,8 @@
  */
 package com.osinka.subset
 
+import org.bson.BasicBSONObject
+
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
@@ -45,7 +47,7 @@ case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
 }
 
 object Field {
-  import collection.JavaConverters._
+  import collection.convert.decorateAsScala._
   import org.bson.types.BasicBSONList
 
   def apply[T](pf: PartialFunction[Any,T]): FieldPf[T] = new FieldPf[T](pf)
@@ -119,6 +121,17 @@ object Field {
         }
     }
 
+  implicit def mapGetter[T](implicit r: Field[T]) = new Field[Map[String,T]] {
+    override def apply(v: Any) = v match {
+      case dbo: BasicBSONObject =>
+        allOrNone(
+          dbo.asScala.map { case (key, value) => r(value).map(key -> _) }
+        ).map(_.toMap)
+      case _ =>
+        None
+    }
+  }
+
   implicit def fromParser[T](implicit p: DocParser[T]) = Field[T]({ case p(v) => v })
 
   def allOrNone[T](results: Traversable[Option[T]]): Option[Traversable[T]] =
@@ -126,6 +139,4 @@ object Field {
       None
     else
       Some(results.flatten)
-
-  // TODO: Field[Map[String,T]]
 }
