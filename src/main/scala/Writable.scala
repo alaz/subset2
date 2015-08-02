@@ -15,12 +15,16 @@
  */
 package com.osinka.subset
 
+import com.osinka.subset.Field._
+import org.bson.BasicBSONObject
+
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
-import util.matching.Regex
+import scala.util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
+import scala.collection.JavaConversions._
 
 @implicitNotFound(msg = "Cannot find BsonWritable for ${A}")
 trait BsonWritable[-A] { parent =>
@@ -65,8 +69,8 @@ object BsonWritable {
       override def apply(x: Option[T]): Option[Any] = x.flatMap(w.apply _)
     }
   implicit def seqSetter[T](implicit w: BsonWritable[T]) =
-    new BsonWritable[Traversable[T]] {
-      override def apply(x: Traversable[T]): Option[Any] = Some( x.flatMap(w.apply _).toArray )
+    new BsonWritable[Seq[T]] {
+      override def apply(x: Seq[T]): Option[Any] = Some( x.flatMap(w.apply _).toArray )
     }
   implicit def tuple2Setter[T1,T2](implicit w1: BsonWritable[T1], w2: BsonWritable[T2]) =
     new BsonWritable[Tuple2[T1,T2]] {
@@ -74,5 +78,22 @@ object BsonWritable {
         for {x1 <- w1.apply(t._1); x2 <- w2.apply(t._2)}
         yield Array(x1,x2)
     }
-  // TODO: BsonWritable[Map[String,T]]
+  implicit def mapSetterStringKey[V](implicit vw: BsonWritable[V]): BsonWritable[Map[String, V]] =
+    new BsonWritable[Map[String, V]] {
+      override def apply(x: Map[String, V]): Option[Any] =
+        allOrNone {
+          x.map {
+            case (key, value) => vw(value).map(key -> _)
+          }
+        }.map(v => new BasicBSONObject(v.toMap))
+    }
+  implicit def mapSetter[K, V](implicit kw: BsonWritable[K], vw: BsonWritable[V], tw: BsonWritable[Tuple2[K, V]]) =
+    new BsonWritable[Map[K, V]] {
+      override def apply(x: Map[K, V]): Option[Any] = Some {
+        x.flatMap {
+          case (key, value) =>
+            tw.apply((key, value))
+        }.toArray
+      }
+    }
 }

@@ -15,12 +15,15 @@
  */
 package com.osinka.subset
 
+import org.bson.BasicBSONObject
+
 import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
-import util.matching.Regex
+import scala.util.matching.Regex
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
+import scala.collection.JavaConversions._
 
 @implicitNotFound(msg = "Cannot find Field for ${A}")
 trait Field[+A] { parent =>
@@ -127,5 +130,33 @@ object Field {
     else
       Some(results.flatten)
 
-  // TODO: Field[Map[String,T]]
+  implicit def mapGetterStringKey[V](implicit vf: Field[V]) = new Field[Map[String, V]] {
+
+    override def apply(v: Any) =
+      v match {
+        case obj: BasicBSONObject =>
+          allOrNone {
+            obj.map {
+              case (key, value) => vf(value).map(key -> _)
+            }
+          }.map(_.toMap)
+        case _ => None
+      }
+  }
+
+  implicit def mapGetter[K, V](implicit tf: Field[(K, V)]) = new Field[Map[K, V]] {
+
+    override def apply(v: Any) = {
+
+      @inline
+      def conv(iter: Iterable[_]) =
+        allOrNone(iter.map(tf(_))).map(_.toMap)
+
+      v match {
+        case ar: Array[_] => conv(ar)
+        case list: BasicBSONList => conv(list.asScala)
+        case _ => None
+      }
+    }
+  }
 }
