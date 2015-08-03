@@ -6,9 +6,9 @@ homepage := Some(url("https://github.com/osinka/subset2"))
 
 startYear := Some(2013)
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.11.6", "2.10.5")
+crossScalaVersions := Seq("2.11.7", "2.10.5")
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
@@ -19,8 +19,8 @@ description := """MongoDB Document parser combinators and builders"""
 scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "3.0.0",
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+  "org.mongodb" % "mongo-java-driver" % "3.0.3",
+  "org.scalatest" %% "scalatest" % "2.2.5" % "test"
 )
 
 credentials <+= (version) map { version: String =>
