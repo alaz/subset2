@@ -16,13 +16,13 @@
 package com.osinka.subset
 
 import org.bson.types.ObjectId
-import com.mongodb.DBObject
+import org.bson.BSONObject
 
 import BsonParser.{ParseResult,Document}
 
 object BsonParser {
   type ParseResult[+A] = Either[String,A]
-  type Document = DBObject
+  type Document = BSONObject
 }
 
 case class ~[+A, +B](_1: A, _2: B)
@@ -92,8 +92,8 @@ object DocParser {
       Option(doc.get(name)) toRight ("No field `"+name+"`")
     }
 
-  def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[DBObject]): DocParser[T] =
-    get[DBObject](name).flatMap(doc => DocParser[T](_ => parser(doc)))
+  def doc[T](name: String)(parser: DocParser[T])(implicit f: Field[Document]): DocParser[T] =
+    get[Document](name).flatMap(doc => DocParser[T](_ => parser(doc)))
 
   def int(name: String)(implicit f: Field[Int]): DocParser[Int] = get[Int](name)
 

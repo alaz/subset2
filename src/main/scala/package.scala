@@ -15,7 +15,7 @@
  */
 package com.osinka
 
-package object subset {
+package object subset extends DocReadables {
   import scala.language.implicitConversions
 
   implicit def kvFromStrKey[A](t: (String,A))(implicit writer: BsonWritable[A]) =
