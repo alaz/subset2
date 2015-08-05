@@ -21,6 +21,7 @@ import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
 import util.matching.Regex
+import org.bson.{Document => MongoDocument}
 import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
@@ -70,7 +71,11 @@ object Field {
   implicit val dateGetter = Field[Date]({ case d: Date => d })
 
   implicit val objIdGetter = Field[ObjectId]({ case objId: ObjectId => objId })
-  implicit val dboGetter = Field[DBObject]({ case dbo: DBObject => dbo })
+  implicit val docGetter = Field[MongoDocument]({ case dbo: MongoDocument => dbo })
+  implicit val readableGetter = Field[DocReadable]({
+    case dbo: DBObject => dbo
+    case doc: MongoDocument => doc
+  })
   implicit val patternGetter = Field[Pattern]({ case p: Pattern => p })
   implicit val stringGetter = Field[String]({
     case s: String => s
