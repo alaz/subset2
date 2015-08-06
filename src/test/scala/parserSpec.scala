@@ -19,6 +19,7 @@ import org.scalatest.{FunSpec,Matchers}
 
 import com.mongodb.BasicDBObjectBuilder.{start => dbo}
 import org.bson.types.{ObjectId, Symbol => BsonSym}
+import org.bson.Document
 
 class parserSpec extends FunSpec with Matchers with MongoMatchers with Routines {
   import DocParser._
@@ -26,18 +27,32 @@ class parserSpec extends FunSpec with Matchers with MongoMatchers with Routines 
   describe("Basic parser") {
     it("retrieves a field") {
       get[Int]("a").apply(dbo("a", 10).get) should equal(Right(10))
+      get[Int]("a").apply(new Document("a", 10)) should equal(Right(10))
+
       get[String]("a").apply(dbo("a", "bb").get) should equal(Right("bb"))
+      get[String]("a").apply(new Document("a", "bb")) should equal(Right("bb"))
     }
     it("fails to retrieve wrong field type") {
       get[Int]("a").apply(dbo("a", "str").get) should be('left)
+      get[Int]("a").apply(new Document("a", "str")) should be('left)
     }
     it("retrieves by path") {
-      get[Int]("a.b" split "\\.").apply(dbo.push("a").add("b", 10).get) should equal(Right(10))
+      get[Int]("a.b" split "\\.").apply(
+        dbo.push("a").add("b", 10).get
+      ) should equal(Right(10))
+      get[Int]("a.b" split "\\.").apply(
+        new Document().append("a", new Document("b", 10))
+      ) should equal(Right(10))
     }
     it("checks for existence") {
       contains[ObjectId]("id", new ObjectId).apply(dbo("id", new ObjectId).get) should be('left)
+      contains[ObjectId]("id", new ObjectId).apply(new Document("id", new ObjectId)) should be('left)
+
       contains[Int]("id", 10).apply(dbo("id", "str").get) should be('left)
+      contains[Int]("id", 10).apply(new Document("id", "str")) should be('left)
+
       contains[Int]("id", 10).apply(dbo("id", 10).get) should be('right)
+      contains[Int]("id", 10).apply(new Document("id", 10)) should be('right)
     }
   }
   describe("Combinator") {
@@ -45,15 +60,22 @@ class parserSpec extends FunSpec with Matchers with MongoMatchers with Routines 
       val parser: DocParser[Option[Int]] = int("a").opt
 
       parser.apply(dbo("a", 10).get) should equal(Right(Some(10)))
+      parser.apply(new Document("a", 10)) should equal(Right(Some(10)))
+
       parser.apply(dbo.get) should equal(Right(None))
+      parser.apply(new Document) should equal(Right(None))
     }
     it("descends into subdocuments") {
       val parser = doc("a")(int("b") ~ str("c"))
-      val matching = dbo.push("a").add("b", 5).add("c", "str").get
-      parser.apply(matching) should be('right)
+      val matchingDbo = dbo.push("a").add("b", 5).add("c", "str").get
+      val matchingDoc = new Document("a", new Document("b", 5).append("c", "str"))
+
+      parser.apply(matchingDbo) should be('right)
+      parser.apply(matchingDoc) should be('right)
 
       val tupled = parser map { case i ~ s => (i,s) }
-      tupled(matching) should equal(Right(5 -> "str"))
+      tupled(matchingDbo) should equal(Right(5 -> "str"))
+      tupled(matchingDoc) should equal(Right(5 -> "str"))
     }
     it("selects") {
       val parser = str("event") >> {
@@ -71,10 +93,19 @@ class parserSpec extends FunSpec with Matchers with MongoMatchers with Routines 
       // )
 
       parser(dbo.get) should be('left)
+      parser(new Document) should be('left)
+
       parser(dbo("version", 1).add("key", 10).get) should be('left)
+      parser(new Document("version", 1).append("key", 10)) should be('left)
+
       parser(dbo("event", "not_our").add("version", 1).add("key", 10).get) should be('left)
+      parser(new Document("event", "not_our").append("version", 1).append("key", 10)) should be('left)
+
       parser(dbo("event", "ourtype").add("version", 1).add("key", 10).get) should equal(Right(10))
+      parser(new Document("event", "ourtype").append("version", 1).append("key", 10)) should equal(Right(10))
+
       parser(dbo("event", "ourtype").add("version", 2).add("l", 10L).get) should equal(Right(10))
+      parser(new Document("event", "ourtype").append("version", 2).append("l", 10L)) should equal(Right(10))
     }
     it("selects with greater tolerance") {
       import SmartFields._
@@ -86,13 +117,16 @@ class parserSpec extends FunSpec with Matchers with MongoMatchers with Routines 
       }
 
       parser(dbo("event", new BsonSym("ourtype")).add("version", 1).add("key", 10L).get) should be('right)
+      parser(new Document("event", new BsonSym("ourtype")).append("version", 1).append("key", 10L)) should be('right)
+
       parser(dbo("event", new BsonSym("ourtype")).add("version", 2).add("l", 10).get) should be('right)
+      parser(new Document("event", new BsonSym("ourtype")).append("version", 2).append("l", 10)) should be('right)
     }
   }
   describe("Parser for recursive structures") {
     it("is possible") {
       Rec.Doc( DBO("id" -> 123)() ) should equal(Right(Rec(123, None)))
-
+      Rec.Doc( new Document("id", 123) ) should equal(Right(Rec(123, None)))
     }
     it("can be used as another field") {
       val y = DocParser.get[Rec]("y")
