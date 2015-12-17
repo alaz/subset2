@@ -47,6 +47,13 @@ class DBObjectBuffer(val builder: BasicDBObjectBuilder) {
 
   def append[A : BsonWritable](t: (String,A)): this.type = append(t._1, t._2)
 
+  def append(tuples: DBO.KV*): this.type = {
+    for {DBO.KV(key,option) <- tuples
+         value <- option}
+      builder.add(key, value)
+    this
+  }
+
   /* walks through the DBObject and replaces all the value Symbols by corresponding bindings.
    * The intended use is like this
    *
