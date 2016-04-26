@@ -23,14 +23,19 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.5" % "test"
 )
 
-credentials += Credentials(Path.userHome / ".ivy2/credentials_sonatype")
+credentials <+= (version) map { version: String =>
+  val file =
+    if (version.trim endsWith "SNAPSHOT") "credentials_osinka"
+    else "credentials_sonatype"
+  Credentials(Path.userHome / ".ivy2" / file)
+}
 
 pomIncludeRepository := { x => false }
 
 publishTo <<= (version) { version: String =>
   Some(
     if (version.trim endsWith "SNAPSHOT")
-      "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+      "Osinka Internal Repo" at "http://repo.osinka.int/content/repositories/snapshots/"
     else
       "Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
   )
@@ -44,7 +49,7 @@ pomExtra := <xml:group>
         <id>alaz</id>
         <email>azarov@osinka.com</email>
         <name>Alexander Azarov</name>
-        <timezone>+2</timezone>
+        <timezone>+4</timezone>
       </developer>
     </developers>
     <scm>
