@@ -48,7 +48,7 @@ case class FieldPf[+T](pf: PartialFunction[Any, T]) extends Field[T] {
 }
 
 object Field {
-  import collection.convert.decorateAsScala._
+  import collection.JavaConverters._
   import org.bson.types.BasicBSONList
 
   def apply[T](pf: PartialFunction[Any,T]): FieldPf[T] = new FieldPf[T](pf)
