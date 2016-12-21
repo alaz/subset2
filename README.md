@@ -210,5 +210,5 @@ implicit val jodaDateTime = Field[DateTime]({
 # Installation
 
 ```
-libraryDependencies += "com.osinka.subset" %% "subset" % "2.2.0"
+libraryDependencies += "com.osinka.subset" %% "subset" % "2.2.2"
 ```
