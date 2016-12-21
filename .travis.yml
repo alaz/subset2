@@ -4,7 +4,7 @@ scala:
 - 2.12.1
 - 2.11.8
 jdk:
-- oraclejdk7
+- oraclejdk8
 script:
 - sbt -Dfile.encoding=UTF8 -no-colors ++$TRAVIS_SCALA_VERSION test
 cache:
