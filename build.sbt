@@ -6,9 +6,9 @@ homepage := Some(url("https://github.com/osinka/subset2"))
 
 startYear := Some(2013)
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
-crossScalaVersions := Seq("2.11.8", "2.12.1")
+crossScalaVersions := Seq("2.11.11", "2.12.3")
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
@@ -19,22 +19,22 @@ description := """MongoDB Document parser combinators and builders"""
 scalacOptions ++= List("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "3.4.1",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  "org.mongodb" % "mongo-java-driver" % "3.4.3",
+  "org.scalatest" %% "scalatest" % "3.0.3" % "test"
 )
 
-credentials <+= (version) map { version: String =>
+credentials += {
   val file =
-    if (version.trim endsWith "SNAPSHOT") "credentials_osinka"
+    if (version.value.trim endsWith "SNAPSHOT") "credentials_osinka"
     else "credentials_sonatype"
   Credentials(Path.userHome / ".ivy2" / file)
 }
 
 pomIncludeRepository := { x => false }
 
-publishTo <<= (version) { version: String =>
+publishTo := { 
   Some(
-    if (version.trim endsWith "SNAPSHOT")
+    if (version.value.trim endsWith "SNAPSHOT")
       "Osinka Internal Repo" at "https://r.osinka.co/content/repositories/snapshots/"
     else
       "Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
